@@ -1,43 +1,52 @@
-alias @with_block='{ __@func() { __@setfunc'
-__open_block='[;'
-__close_block=';]'
-alias ']'='}; __@run_block; }'
+alias @with_block='{ block.call() { __block_set_func'
+# __block_open='[;'
+# __block_close=';]'
+alias ']'='}; __block_run; }'
 
-__@setfunc() {
-    if [[ -z "$__BLOCK" ]]; then
-        local args=( "$@" )
-        printf '%q ' "${args[@]::${#args[@]}-1}"
-        exit
-    fi
+__block_set_func() {
+    local args=( "$@" )
+    printf '%q ' "${args[@]::${#args[@]}-1}"
+    exit
 }
 
-__@run_block() {
-    eval "set -- $(__BLOCK='' __@func)"
-    eval "$(declare -f __@func | sed '/__@setfunc /{ d; q }')"
-    __BLOCK=__@func "$@"
+__block_run() {
+    eval "set -- $(block.call)"
+    eval "$(declare -f block.call | sed '/__block_set_func /{ d; q }')"
+    "$@"
 }
 
-if [ "$SHELL_EXT" = zsh ]; then
+# and that's it!
+
+# alias to make a block
+__block__make-block() {
+    local funcname="__block-$1"
+    # save a new function
+    eval "$(declare -f block.call | sed "1s/^block\\.call/$funcname/")"
+    alias "@$1=@with_block $funcname"
+}
+alias @make-block='@with_block __block__make-block'
+
+#### some block funcs
+
+if [[ -n "$ZSH_VERSION" ]]; then
     __read_array() { read -r "${@:2}" -A "$1"; }
 else
     __read_array() { read -r "${@:2}" -a "$1"; }
 fi
 
-@map() {
+@make-block map [;
     __failed=0
     while __read_array __args; do
-        "$__BLOCK" "${__args[@]}" || __failed=1
+        block.call "${__args[@]}" || __failed=1
     done
     (( !__failed ))
-}
-alias @map='@with_block @map'
+;]
 
-@filter() {
+@make-block filter [;
     while __read_array __args; do
-        if "$__BLOCK" "${__args[@]}"; then
+        if block.call "${__args[@]}"; then
             printf '%s\n' "${__args[*]}"
         fi
     done
     true
-}
-alias @filter='@with_block @filter'
+;]

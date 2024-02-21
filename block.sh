@@ -29,21 +29,21 @@ alias @make-block='@with_block __block__make-block'
 #### some block funcs
 
 if [[ -n "$ZSH_VERSION" ]]; then
-    __read_array() { read -r "${@:2}" -A "$1"; }
+    __block_read_array() { read -r "${@:2}" -A "$1"; }
 else
-    __read_array() { read -r "${@:2}" -a "$1"; }
+    __block_read_array() { read -r "${@:2}" -a "$1"; }
 fi
 
 @make-block map [
     __failed=0
-    while __read_array __args; do
+    while __block_read_array __args; do
         block.call "${__args[@]}" || __failed=1
     done
     (( !__failed ))
 ]
 
 @make-block filter [
-    while __read_array __args; do
+    while __block_read_array __args; do
         if block.call "${__args[@]}"; then
             printf '%s\n' "${__args[*]}"
         fi

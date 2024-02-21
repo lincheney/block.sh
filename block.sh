@@ -1,4 +1,4 @@
-alias @with_block='{ BLOCK.call() { __block_set_func'
+alias @with_block='{ block.call() { __block_set_func'
 # __block_open='[;'
 # __block_close=';]'
 alias ']'='}; __block_run; }'
@@ -10,8 +10,8 @@ __block_set_func() {
 }
 
 __block_run() {
-    eval "set -- $(BLOCK.call)"
-    eval "$( (echo; declare -f BLOCK.call) | sed '1,/__block_set_func / { /__block_set_func/d }')"
+    eval "set -- $(block.call)"
+    eval "$( (echo; declare -f block.call) | sed '1,/__block_set_func / { /__block_set_func/d }')"
     "$@"
 }
 
@@ -21,7 +21,7 @@ __block_run() {
 __block__make-block() {
     local funcname="__block-$1"
     # save a new function
-    eval "$(declare -f BLOCK.call | sed "1s/^BLOCK\\.call/$funcname/")"
+    eval "$(declare -f block.call | sed "1s/^BLOCK\\.call/$funcname/")"
     alias "@$1=@with_block $funcname"
 }
 alias @make-block='@with_block __block__make-block'
@@ -37,14 +37,14 @@ fi
 @make-block map [
     __failed=0
     while __block_read_array __args; do
-        BLOCK.call "${__args[@]}" || __failed=1
+        block.call "${__args[@]}" || __failed=1
     done
     (( !__failed ))
 ]
 
 @make-block filter [
     while __block_read_array __args; do
-        if BLOCK.call "${__args[@]}"; then
+        if block.call "${__args[@]}"; then
             printf '%s\n' "${__args[*]}"
         fi
     done

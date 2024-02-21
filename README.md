@@ -29,7 +29,7 @@ And then the rough syntax is:
 block-enabled-command ARGS... [; a whole; bunch of; commands ;]
 ```
 
-The commands between the `[;` and `;]` are wrapped up into a function called `BLOCK.call`
+The commands between the `[;` and `;]` are wrapped up into a function called `block.call`
 and then the command is run with the `ARGS...` and it can invoke the function when it wants.
 
 ### Defining your own commands
@@ -37,7 +37,7 @@ and then the command is run with the `ARGS...` and it can invoke the function wh
 You can use the `@make-block` helper or do it yourself.
 
 To make one yourself, define an alias `alias SOMETHING=@with_block FUNC`
-then define a function `FUNC` that calls `BLOCK.call`.
+then define a function `FUNC` that calls `block.call`.
 Now you can invoke it with `SOMETHING`.
 
 If you run `@make-block NAME [; SOME COMMANDS ;]`, it will do basically the same for you,
@@ -50,7 +50,7 @@ Here's how to make a retry:
 @make-block retry [
     local tries="${1:-5}";
     for i in $(seq "$tries"); do 
-        BLOCK.call "$i" && return
+        block.call "$i" && return
     done
     echo "Failed after $tries tries">&2
     return 1 
@@ -66,7 +66,7 @@ Then use this like:
 
 How about some [hyperfine](https://github.com/sharkdp/hyperfine#shell-functions-and-aliases):
 ```bash
-@make-block hyperfine [; hyperfine --shell=bash "$@" "$(declare -f BLOCK.call); BLOCK.call"; ;]
+@make-block hyperfine [; hyperfine --shell=bash "$@" "$(declare -f block.call); block.call"; ;]
 ```
 And use like:
 ```bash
@@ -79,15 +79,15 @@ level=0
 @make-block describe [
     local level=$(( level+1 )) before_each=
     echo "$1:" >&2
-    BLOCK.call 2> >(sed "s/^/$(printf '\t%.s' {1..$level})/" >&2)
+    block.call 2> >(sed "s/^/$(printf '\t%.s' {1..$level})/" >&2)
 ]
 
 @make-block before_each [
-    before_each="$( (echo; declare -f BLOCK.call) | sed '1,/{/d; $d')"
+    before_each="$( (echo; declare -f block.call) | sed '1,/{/d; $d')"
 ]
 
 @make-block test [
-    if ( eval "$before_each"; BLOCK.call ); then
+    if ( eval "$before_each"; block.call ); then
         echo "PASS: $1" >&2
     else
         echo "FAIL: $1" >&2

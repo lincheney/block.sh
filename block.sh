@@ -34,19 +34,19 @@ else
     __read_array() { read -r "${@:2}" -a "$1"; }
 fi
 
-@make-block map [;
+@make-block map [
     __failed=0
     while __read_array __args; do
         block.call "${__args[@]}" || __failed=1
     done
     (( !__failed ))
-;]
+]
 
-@make-block filter [;
+@make-block filter [
     while __read_array __args; do
         if block.call "${__args[@]}"; then
             printf '%s\n' "${__args[*]}"
         fi
     done
     true
-;]
+]

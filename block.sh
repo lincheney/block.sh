@@ -11,7 +11,7 @@ __block_set_func() {
 
 __block_run() {
     eval "set -- $(BLOCK.call)"
-    eval "$(declare -f BLOCK.call | sed '/__block_set_func /{ d; q }')"
+    eval "$( (echo; declare -f BLOCK.call) | sed '1,/__block_set_func / { /__block_set_func/d }')"
     "$@"
 }
 

@@ -21,7 +21,9 @@ __block_run() {
     done < <(declare -f __block_func)
     unset -f __block_func
 
-    eval "set -- $__block_setfunc"; shift
+    eval "local args=( $__block_setfunc )"
+    set -- "${args[@]::${#args[@]}-1}"
+    shift
     eval "$call_block() { $__block_lines"
     unset __block_lines __block_line __block_setfunc
     "$@"
@@ -66,5 +68,4 @@ fi
     done
     true
 ]
-
 

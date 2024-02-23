@@ -26,19 +26,32 @@ You must also have aliases enabled in your shell.
 
 And then the rough syntax is:
 ```bash
-block-enabled-command ARGS... [; a whole; bunch of; commands ;]
+COMMAND ARGS... [; SCRIPT ;]
+# or
+COMMAND ARGS... [& SCRIPT; ]
+# or
+COMMAND ARGS... [
+    SCRIPT
+]
+# or 
+COMMAND[ SCRIPT; ]
 ```
 
-The commands between the `[;` and `;]` are wrapped up into a function called `block.call`
-and then the command is run with the `ARGS...` and it can invoke the function when it wants.
+You must have the `;` or `&` or newline,
+otherwise the `ARGS...` may be incorrect and the first statement of the `SCRIPT` may be lost.
+
+The `SCRIPT` is wrapped up into a function called `block.call`
+and then the `COMMAND` is run with the `ARGS...` and it can invoke the function when it wants.
 
 ### Defining your own commands
 
 You can use the `@make-block` helper or do it yourself.
 
-To make one yourself, define an alias `alias SOMETHING=@with_block FUNC`
+To make one yourself, define an alias `alias COMMAND='@with_block FUNC'`
 then define a function `FUNC` that calls `block.call`.
-Now you can invoke it with `SOMETHING`.
+Now you can invoke it with `COMMAND`.
+
+To get the `COMMAND[ SCRIPT; ]` syntax, make an alias `alias COMMAND[='@with_block FUNC'`.
 
 If you run `@make-block NAME [; SOME COMMANDS ;]`, it will do basically the same for you,
 but the alias will be called `@NAME` (with a `@` in front).

@@ -10,8 +10,8 @@ __block_set_func() {
 }
 
 __block_run() {
-    eval "set -- $(block.call)"
-    eval "$( (echo; declare -f block.call) | sed '1,/__block_set_func / { /__block_set_func/d }')"
+    eval "set -- $(eval "$(declare -f block.call | sed -n '/__block_set_func /{ p; q}')"; wait)"
+    eval "$( (echo; declare -f block.call) | sed '1,/__block_set_func / { /__block_set_func /d }')"
     "$@"
 }
 
@@ -21,8 +21,9 @@ __block_run() {
 __block__make-block() {
     local funcname="__block-$1"
     # save a new function
-    eval "$(declare -f block.call | sed "1s/^BLOCK\\.call/$funcname/")"
+    eval "$(declare -f block.call | sed "1s/^block\\.call/$funcname/")"
     alias "@$1=@with_block $funcname"
+    alias "@$1[=@with_block $funcname {;"
 }
 alias @make-block='@with_block __block__make-block'
 

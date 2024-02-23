@@ -10,10 +10,20 @@ __block_set_func() {
 }
 
 __block_run() {
-    eval "set -- $(eval "$(declare -f __block_func | sed -n '/__block_set_func /{ p; q}')"; wait)"
     local call_block="__block_func_$RANDOM$RANDOM$RANDOM"
-    eval "$( (echo; declare -f __block_func) | sed "1,/__block_set_func / { s/^__block_func/$call_block/; /__block_set_func /d }")"
+    local __block_lines='' __block_line='' __block_setfunc=''
+    while read -r __block_line ; do
+        if [[ -n "$__block_setfunc" ]]; then
+            __block_lines+="$__block_line"$'\n'
+        elif [[ "$__block_line" == *__block_set_func* ]]; then
+            __block_setfunc="${__block_line% &}"
+        fi
+    done < <(declare -f __block_func)
     unset -f __block_func
+
+    eval "set -- $__block_setfunc"; shift
+    eval "$call_block() { $__block_lines"
+    unset __block_lines __block_line __block_setfunc
     "$@"
     local code="$?"
     unset -f "$call_block"
@@ -56,3 +66,5 @@ fi
     done
     true
 ]
+
+

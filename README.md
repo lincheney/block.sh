@@ -40,7 +40,7 @@ COMMAND[ SCRIPT; ]
 You must have the `;` or `&` or newline,
 otherwise the `ARGS...` may be incorrect and the first statement of the `SCRIPT` may be lost.
 
-The `SCRIPT` is wrapped up into a function called `block.call`
+The `SCRIPT` is wrapped up into a function given in the variable `$call_block`
 and then the `COMMAND` is run with the `ARGS...` and it can invoke the function when it wants.
 
 ### Defining your own commands
@@ -48,7 +48,7 @@ and then the `COMMAND` is run with the `ARGS...` and it can invoke the function 
 You can use the `@make-block` helper or do it yourself.
 
 To make one yourself, define an alias `alias COMMAND='@with_block FUNC'`
-then define a function `FUNC` that calls `block.call`.
+then define a function `FUNC` that calls `$call_block`.
 Now you can invoke it with `COMMAND`.
 
 To get the `COMMAND[ SCRIPT; ]` syntax, make an alias `alias COMMAND[='@with_block FUNC'`.
@@ -63,7 +63,7 @@ Here's how to make a retry:
 @make-block retry [
     local tries="${1:-5}";
     for i in $(seq "$tries"); do 
-        block.call "$i" && return
+        "$call_block" "$i" && return
     done
     echo "Failed after $tries tries">&2
     return 1 
@@ -79,7 +79,7 @@ Then use this like:
 
 How about some [hyperfine](https://github.com/sharkdp/hyperfine#shell-functions-and-aliases):
 ```bash
-@make-block hyperfine [; hyperfine --shell=bash "$@" "$(declare -f block.call); block.call"; ;]
+@make-block hyperfine [; hyperfine --shell=bash "$@" "$(declare -f "$call_block); $call_block"; ;]
 ```
 And use like:
 ```bash
@@ -92,15 +92,15 @@ level=0
 @make-block describe [
     local level=$(( level+1 )) before_each=
     echo "$1:" >&2
-    block.call 2> >(sed "s/^/$(printf '\t%.s' {1..$level})/" >&2)
+    "$call_block" 2> >(sed "s/^/$(printf '\t%.s' {1..$level})/" >&2)
 ]
 
 @make-block before_each [
-    before_each="$( (echo; declare -f block.call) | sed '1,/{/d; $d')"
+    before_each="$( (echo; declare -f "$call_block") | sed '1,/{/d; $d')"
 ]
 
 @make-block test [
-    if ( eval "$before_each"; block.call ); then
+    if ( eval "$before_each"; "$call_block" ); then
         echo "PASS: $1" >&2
     else
         echo "FAIL: $1" >&2

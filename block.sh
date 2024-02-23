@@ -11,9 +11,13 @@ __block_set_func() {
 
 __block_run() {
     eval "set -- $(eval "$(declare -f __block_func | sed -n '/__block_set_func /{ p; q}')"; wait)"
-    local call_block="$__block_func_$RANDOM$RANDOM$RANDOM"
+    local call_block="__block_func_$RANDOM$RANDOM$RANDOM"
     eval "$( (echo; declare -f __block_func) | sed "1,/__block_set_func / { s/^__block_func/$call_block/; /__block_set_func /d }")"
+    unset -f __block_func
     "$@"
+    local code="$?"
+    unset -f "$call_block"
+    return "$code"
 }
 
 # and that's it!

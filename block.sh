@@ -11,21 +11,22 @@ __block_set_func() {
 
 __block_run() {
     local call_block="__block_func_$RANDOM$RANDOM$RANDOM"
-    local __block_lines='' __block_line='' __block_setfunc=''
-    while read -r __block_line ; do
-        if [[ -n "$__block_setfunc" ]]; then
-            __block_lines+="$__block_line"$'\n'
-        elif [[ "$__block_line" == *__block_set_func* ]]; then
-            __block_setfunc="${__block_line% &}"
+    local lines='' line='' setfunc=''
+    while read -r line ; do
+        if [[ -n "$setfunc" ]]; then
+            lines+="$line"$'\n'
+        elif [[ "$line" == *__block_set_func* ]]; then
+            setfunc="${line% &}"
         fi
     done < <(declare -f __block_func)
     unset -f __block_func
 
-    eval "local args=( $__block_setfunc )"
+    eval "set -- $setfunc"
+    local args=( "$@" )
     set -- "${args[@]::${#args[@]}-1}"
     shift
-    eval "$call_block() { $__block_lines"
-    unset __block_lines __block_line __block_setfunc
+    eval "$call_block() { $lines"
+    unset unset args lines line setfunc
     "$@"
     local code="$?"
     unset -f "$call_block"
